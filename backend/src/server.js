@@ -12,7 +12,12 @@ if (process.env.DNS_FALLBACK === "true") {
 const parsedPort = Number(process.env.PORT);
 let PORT;
 
-if (Number.isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+if (
+  Number.isNaN(parsedPort) ||
+  !Number.isInteger(parsedPort) ||
+  parsedPort < 1 ||
+  parsedPort > 65535
+) {
   PORT = 3000;
 } else {
   PORT = parsedPort;
@@ -21,8 +26,12 @@ if (Number.isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
+    });
+    server.on("error", (error) => {
+      logger.error({ err: error }, "Failed to start the server");
+      process.exit(1);
     });
   } catch (error) {
     logger.error({ err: error }, "Failed to connect to the database");

@@ -1,11 +1,11 @@
 import pino from "pino";
-const isProduction = process.env.NODE_ENV === "production";
+const isDevelopment = process.env.NODE_ENV === "development";
 
 const pinoOptions = {
   level: process.env.LOG_LEVEL || "info",
 };
 
-if (!isProduction) {
+if (isDevelopment) {
   pinoOptions.transport = {
     target: "pino-pretty",
     options: {

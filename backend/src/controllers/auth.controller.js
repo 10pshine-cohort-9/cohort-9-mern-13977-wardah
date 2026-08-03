@@ -1,10 +1,94 @@
-function login(req, res) {
-  res.status(501).send("Login not implemented yet");
+import User from "../models/user.model.js";
+import bcrypt from "bcrypt";
+import logger from "../utils/logger.js";
+import generateToken from "../utils/jwt.js";
+async function login(req, res) {
+  try {
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password;
+    if (!email || !password) {
+      logger.warn("Email and password are required");
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      logger.warn("User not found");
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      logger.warn("Invalid password");
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+    const token = generateToken(user._id);
+    logger.info("User is successfully logged in");
+    res.status(200).json({
+      message: "User is successfully logged in",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+      token,
+    });
+  } catch (error) {
+    logger.error({ err: error }, "Error logging in user");
+    res.status(500).json({ message: "Error logging in user" });
+  }
 }
-function signup(req, res) {
-  res.status(501).send("Signup not implemented yet");
+
+async function signup(req, res) {
+  try {
+    const name = req.body.name;
+    const email = req.body.email.trim().toLowerCase();
+    const password = req.body.password;
+
+    if (!name || !email || !password) {
+      logger.warn("Name, email, and password are required");
+      return res
+        .status(400)
+        .json({ message: "Name, email, and password are required" });
+    }
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      logger.warn("Email already exists");
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+    });
+    await newUser.save();
+    const token = generateToken(newUser._id);
+    logger.info("User is successfully created");
+    res.status(201).json({
+      message: "User is successfully created",
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+      },
+      token,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      logger.warn("Email already exists");
+      return res.status(400).json({ message: "Email already exists" });
+    }
+    logger.error({ err: error }, "Error creating user");
+    return res.status(500).json({ message: "Error creating user" });
+  }
 }
+
 function logout(req, res) {
-  res.status(501).send("Logout not implemented yet");
+  logger.info("User is successfully logged out");
+  return res.status(200).json({ message: "User is successfully logged out" });
 }
+
 export { login, signup, logout };

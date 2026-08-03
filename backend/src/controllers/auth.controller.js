@@ -4,7 +4,7 @@ import logger from "../utils/logger.js";
 import generateToken from "../utils/jwt.js";
 async function login(req, res) {
   try {
-    const email = req.body.email;
+    const email = req.body.email?.trim().toLowerCase();
     const password = req.body.password;
     if (!email || !password) {
       logger.warn("Email and password are required");
@@ -42,7 +42,7 @@ async function login(req, res) {
 async function signup(req, res) {
   try {
     const name = req.body.name;
-    const email = req.body.email;
+    const email = req.body.email.trim().toLowerCase();
     const password = req.body.password;
 
     if (!name || !email || !password) {
@@ -77,12 +77,16 @@ async function signup(req, res) {
       token,
     });
   } catch (error) {
+    if (error.code === 11000) {
+      logger.warn("Email already exists");
+      return res.status(400).json({ message: "Email already exists" });
+    }
     logger.error({ err: error }, "Error creating user");
-    res.status(500).json({ message: "Error creating user" });
+    return res.status(500).json({ message: "Error creating user" });
   }
 }
 
-async function logout(req, res) {
+function logout(req, res) {
   logger.info("User is successfully logged out");
   return res.status(200).json({ message: "User is successfully logged out" });
 }

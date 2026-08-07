@@ -2,8 +2,20 @@ import Note from "../models/note.model.js";
 import logger from "../utils/logger.js";
 const createNote = async (req, res) => {
   try {
-    const title = req.body.title?.trim();
-    const content = req.body.content?.trim();
+    const body = req.body ?? {};
+
+    if (body.title !== undefined && typeof body.title !== "string") {
+      logger.warn("Title must be a string");
+      return res.status(400).json({ message: "Title must be a string" });
+    }
+
+    if (body.content !== undefined && typeof body.content !== "string") {
+      logger.warn("Content must be a string");
+      return res.status(400).json({ message: "Content must be a string" });
+    }
+
+    const title = body.title?.trim();
+    const content = body.content.trim();
     const userId = req.user.userId;
     if (!content) {
       logger.warn("Content is required");
@@ -79,9 +91,20 @@ const updateNote = async (req, res) => {
   try {
     const noteId = req.params.id;
     const userId = req.user.userId;
+    const body = req.body ?? {};
 
-    const title = req.body.title?.trim();
-    const content = req.body.content?.trim();
+    if (body.title !== undefined && typeof body.title !== "string") {
+      logger.warn("Title must be a string");
+      return res.status(400).json({ message: "Title must be a string" });
+    }
+
+    if (body.content !== undefined && typeof body.content !== "string") {
+      logger.warn("Content must be a string");
+      return res.status(400).json({ message: "Content must be a string" });
+    }
+
+    const title = body.title?.trim();
+    const content = body.content?.trim();
 
     if (!content) {
       logger.warn("Content is required");

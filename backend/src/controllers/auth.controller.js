@@ -9,11 +9,11 @@ async function login(req, res) {
     const email = req.body.email;
     const password = req.body.password;
 
-    if (!email || !password) {
-      logger.warn("Email and password are required");
+    if (typeof email !== "string" || typeof password !== "string") {
+      logger.warn("Email and password must be strings");
       return res
         .status(400)
-        .json({ message: "Email and password are required" });
+        .json({ message: "Email and password must be strings" });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -50,15 +50,18 @@ async function signup(req, res) {
     const email = req.body.email;
     const password = req.body.password;
 
-    if (!name || !email || !password) {
-      logger.warn("Name, email, and password are required");
-      return res
-        .status(400)
-        .json({ message: "Name, email, and password are required" });
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string"
+    ) {
+      logger.warn("Name, email, and password must be strings");
+      return res.status(400).json({
+        message: "Name, email, and password must be strings",
+      });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {

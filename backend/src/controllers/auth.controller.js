@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import logger from "../utils/logger.js";
 import generateToken from "../utils/jwt.js";
 import BlacklistedToken from "../models/blacklistedToken.model.js";
+import hashToken from "../utils/hashToken.js";
 async function login(req, res) {
   try {
     const email = req.body.email;
@@ -95,11 +96,11 @@ async function signup(req, res) {
 
 async function logout(req, res) {
   try {
-    const token = req.token;
+    const tokenHash = hashToken(req.token);
     const userId = req.user.userId;
     const expiresAt = new Date(req.user.exp * 1000);
     const blacklistedToken = new BlacklistedToken({
-      token,
+      tokenHash,
       userId,
       expiresAt,
     });
@@ -108,6 +109,13 @@ async function logout(req, res) {
     logger.info("User is successfully logged out");
     return res.status(200).json({ message: "User is successfully logged out" });
   } catch (error) {
+    if (error.code === 11000) {
+      logger.info("User is already logged out");
+      return res
+        .status(200)
+        .json({ message: "User is successfully logged out" });
+    }
+
     logger.error({ err: error }, "Error logging out user");
     return res.status(500).json({ message: "Error logging out user" });
   }

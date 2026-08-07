@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import logger from "../utils/logger.js";
 import BlacklistedToken from "../models/blacklistedToken.model.js";
+import hashToken from "../utils/hashToken.js";
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -23,7 +24,8 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, secretKey);
-    const blacklistedToken = await BlacklistedToken.findOne({ token });
+    const tokenHash = hashToken(token);
+    const blacklistedToken = await BlacklistedToken.findOne({ tokenHash });
 
     if (blacklistedToken) {
       logger.warn("Token is blacklisted");

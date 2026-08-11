@@ -4,7 +4,7 @@ import logger from "../utils/logger.js";
 import generateToken from "../utils/jwt.js";
 import BlacklistedToken from "../models/blacklistedToken.model.js";
 import hashToken from "../utils/hashToken.js";
-async function login(req, res) {
+async function login(req, res, next) {
   try {
     const email = req.body.email;
     const password = req.body.password;
@@ -39,12 +39,11 @@ async function login(req, res) {
       token,
     });
   } catch (error) {
-    logger.error({ err: error }, "Error logging in user");
-    res.status(500).json({ message: "Error logging in user" });
+    next(error);
   }
 }
 
-async function signup(req, res) {
+async function signup(req, res, next) {
   try {
     const name = req.body.name;
     const email = req.body.email;
@@ -92,12 +91,11 @@ async function signup(req, res) {
       logger.warn("Email already exists");
       return res.status(400).json({ message: "Email already exists" });
     }
-    logger.error({ err: error }, "Error creating user");
-    return res.status(500).json({ message: "Error creating user" });
+    next(error);
   }
 }
 
-async function logout(req, res) {
+async function logout(req, res, next) {
   try {
     const tokenHash = hashToken(req.token);
     const userId = req.user.userId;
@@ -118,9 +116,7 @@ async function logout(req, res) {
         .status(200)
         .json({ message: "User is successfully logged out" });
     }
-
-    logger.error({ err: error }, "Error logging out user");
-    return res.status(500).json({ message: "Error logging out user" });
+    next(error);
   }
 }
 

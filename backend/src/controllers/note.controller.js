@@ -1,6 +1,7 @@
 import Note from "../models/note.model.js";
 import logger from "../utils/logger.js";
-const createNote = async (req, res) => {
+
+const createNote = async (req, res, next) => {
   try {
     const body = req.body ?? {};
 
@@ -17,6 +18,7 @@ const createNote = async (req, res) => {
     const title = body.title?.trim();
     const content = body.content.trim();
     const userId = req.user.userId;
+
     if (!content) {
       logger.warn("Content is required");
       return res.status(400).json({ message: "Content is required" });
@@ -29,11 +31,10 @@ const createNote = async (req, res) => {
     logger.info(`Note created successfully: ${note._id}`);
     return res.status(201).json({ message: "Note created successfully", note });
   } catch (error) {
-    logger.error({ err: error }, "Error creating note");
-    return res.status(500).json({ message: "Error creating note" });
+    next(error);
   }
 };
-const getNotes = async (req, res) => {
+const getNotes = async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
@@ -46,15 +47,11 @@ const getNotes = async (req, res) => {
       notes,
     });
   } catch (error) {
-    logger.error({ err: error }, "Error fetching notes");
-
-    return res.status(500).json({
-      message: "Error fetching notes",
-    });
+    next(error);
   }
 };
 
-const getNoteById = async (req, res) => {
+const getNoteById = async (req, res, next) => {
   try {
     const userId = req.user.userId;
     const noteId = req.params.id;
@@ -79,15 +76,11 @@ const getNoteById = async (req, res) => {
       note,
     });
   } catch (error) {
-    logger.error({ err: error }, "Error fetching note");
-
-    return res.status(500).json({
-      message: "Error fetching note",
-    });
+    next(error);
   }
 };
 
-const updateNote = async (req, res) => {
+const updateNote = async (req, res, next) => {
   try {
     const noteId = req.params.id;
     const userId = req.user.userId;
@@ -144,15 +137,11 @@ const updateNote = async (req, res) => {
       note: updatedNote,
     });
   } catch (error) {
-    logger.error({ err: error }, "Error updating note");
-
-    return res.status(500).json({
-      message: "Error updating note",
-    });
+    next(error);
   }
 };
 
-const deleteNote = async (req, res) => {
+const deleteNote = async (req, res, next) => {
   try {
     const noteId = req.params.id;
     const userId = req.user.userId;
@@ -170,8 +159,7 @@ const deleteNote = async (req, res) => {
     logger.info("Note deleted successfully");
     return res.status(200).json({ message: "Note deleted successfully" });
   } catch (error) {
-    logger.error({ err: error }, "Error deleting note");
-    return res.status(500).json({ message: "Error deleting note" });
+    next(error);
   }
 };
 

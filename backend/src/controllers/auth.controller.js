@@ -4,7 +4,7 @@ import logger from "../utils/logger.js";
 import generateToken from "../utils/jwt.js";
 import BlacklistedToken from "../models/blacklistedToken.model.js";
 import hashToken from "../utils/hashToken.js";
-async function login(req, res) {
+async function login(req, res, next) {
   try {
     const email = req.body.email;
     const password = req.body.password;
@@ -17,18 +17,32 @@ async function login(req, res) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password.trim()) {
+      logger.warn("Email and password are required");
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
     const user = await User.findOne({ email: normalizedEmail });
+
     if (!user) {
       logger.warn("User not found");
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       logger.warn("Invalid password");
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
     const token = generateToken(user._id);
+
     logger.info("User is successfully logged in");
+
     res.status(200).json({
       message: "User is successfully logged in",
       user: {
@@ -39,12 +53,10 @@ async function login(req, res) {
       token,
     });
   } catch (error) {
-    logger.error({ err: error }, "Error logging in user");
-    res.status(500).json({ message: "Error logging in user" });
+    next(error);
   }
 }
-
-async function signup(req, res) {
+async function signup(req, res, next) {
   try {
     const name = req.body.name;
     const email = req.body.email;
@@ -61,23 +73,38 @@ async function signup(req, res) {
       });
     }
 
+    const normalizedName = name.trim();
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedName || !normalizedEmail || !password.trim()) {
+      logger.warn("Name, email, and password are required");
+      return res.status(400).json({
+        message: "Name, email, and password are required",
+      });
+    }
+
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       logger.warn("Email already exists");
       return res.status(400).json({ message: "Email already exists" });
     }
+
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     const newUser = new User({
-      name,
+      name: normalizedName,
       email: normalizedEmail,
       password: hashedPassword,
     });
+
     await newUser.save();
+
     const token = generateToken(newUser._id);
+
     logger.info("User is successfully created");
+
     res.status(201).json({
       message: "User is successfully created",
       user: {
@@ -92,12 +119,12 @@ async function signup(req, res) {
       logger.warn("Email already exists");
       return res.status(400).json({ message: "Email already exists" });
     }
-    logger.error({ err: error }, "Error creating user");
-    return res.status(500).json({ message: "Error creating user" });
+
+    next(error);
   }
 }
 
-async function logout(req, res) {
+async function logout(req, res, next) {
   try {
     const tokenHash = hashToken(req.token);
     const userId = req.user.userId;
@@ -118,9 +145,7 @@ async function logout(req, res) {
         .status(200)
         .json({ message: "User is successfully logged out" });
     }
-
-    logger.error({ err: error }, "Error logging out user");
-    return res.status(500).json({ message: "Error logging out user" });
+    next(error);
   }
 }
 

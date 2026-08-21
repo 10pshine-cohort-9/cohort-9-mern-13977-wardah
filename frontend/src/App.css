@@ -285,8 +285,8 @@ body {
     min-height: 250px;
   }
 
-  .note-card {
-    min-height: 220px;
-    padding: 24px;
+  .note-card-wrapper {
+    width: 100%;
+    max-width: 360px;
   }
 }

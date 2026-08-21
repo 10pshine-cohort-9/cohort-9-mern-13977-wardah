@@ -1,10 +1,12 @@
 import express from "express";
+import cors from "cors";
 import healthRouter from "./routes/health.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import noteRouter from "./routes/note.routes.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 
 const app = express();
+app.use(cors());
 app.use(express.json()); // the middleware that helps parse incoming json requests
 app.use("/api/health", healthRouter);
 app.use("/api/auth", authRouter);

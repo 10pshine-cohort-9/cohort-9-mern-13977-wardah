@@ -49,8 +49,8 @@ function Signup() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Navigate to home after successful registration
-      navigate("/");
+      // Navigate to dashboard after successful registration
+      navigate("/dashboard");
     } catch (err) {
       setError("Failed to connect to server. Please try again.");
     } finally {

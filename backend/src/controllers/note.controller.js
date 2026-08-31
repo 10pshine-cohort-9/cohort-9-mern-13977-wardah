@@ -96,8 +96,14 @@ const updateNote = async (req, res, next) => {
       return res.status(400).json({ message: "Content must be a string" });
     }
 
+    if (body.isStarred !== undefined && typeof body.isStarred !== "boolean") {
+      logger.warn("isStarred must be a boolean");
+      return res.status(400).json({ message: "isStarred must be a boolean" });
+    }
+
     const title = body.title?.trim();
     const content = body.content?.trim();
+    const isStarred = body.isStarred;
 
     if (!content) {
       logger.warn("Content is required");
@@ -115,6 +121,7 @@ const updateNote = async (req, res, next) => {
       {
         title,
         content,
+        ...(isStarred !== undefined && { isStarred }),
       },
       {
         new: true,

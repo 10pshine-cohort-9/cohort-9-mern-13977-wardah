@@ -1,7 +1,7 @@
 import "../App.css";
 import { Link } from "react-router-dom";
 
-function Home() {
+function Landing() {
   return (
     <div className="app">
       <header className="navbar">
@@ -92,4 +92,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Landing;

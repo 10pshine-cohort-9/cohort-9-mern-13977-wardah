@@ -35,12 +35,10 @@ function Login() {
         return;
       }
 
-      // Save token and user info to localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirect user to home
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError("Failed to connect to server. Please try again.");
     } finally {
